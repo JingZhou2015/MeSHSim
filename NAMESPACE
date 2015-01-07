@@ -1,0 +1,16 @@
+importFrom(RCurl,getURL)
+importFrom(XML,xmlRoot)
+importFrom(XML,xmlTreeParse)
+importFrom(XML,xmlValue)
+importFrom(XML,xmlAttrs)
+export(
+    nodeSim,
+    mnodeSim,
+    headingSim,
+    mheadingSim,
+    headingSetSim,
+    docSim,
+    docInfo,
+    nodeInfo,
+    termInfo
+)

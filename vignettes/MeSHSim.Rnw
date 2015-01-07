@@ -1,0 +1,458 @@
+%\VignetteIndexEntry{MeSHSim Quick Overview}
+%\VignetteKeywords{MeSHSim, MeSH, Medical Subject Headings, semantic similarity} 
+%\VignettePackage{MeSHSim}
+\documentclass[10pt]{article}
+\usepackage{natbib}
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage[margin=0.65in]{geometry}
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+\newcommand{\R}{{\textsf{R}}}
+\newcommand{\code}[1]{{\texttt{#1}}}
+\newcommand{\term}[1]{{\emph{#1}}}
+\newcommand{\Rpackage}[1]{\textsf{#1}}
+\newcommand{\Rfunction}[1]{\texttt{#1}}
+\newcommand{\Robject}[1]{\texttt{#1}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\textit{#1}}}
+\newcommand{\Rfunarg}[1]{{\textit{#1}}}
+%\bibliographystyle{plainnat} 
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+\title{The MeSHSim package}
+\author{Jing Zhou, Yuxuan Shui\\School of Computer Science, Fudan University, Shanghai, China}
+\date{\today}
+\maketitle
+%\tableofcontents
+\section{INTRODUCTION}
+MeSH(Medical Subject Headings) is a vocabulary thesaurus, being controlled by NLM(National Library of Medicine) to index MEDLINE documents. MeSH consists of a set of description terms, which are organized in a hierarchical structure(called MeSH trees), where more general terms appear at nodes closer to the root and more specific terms appear at nodes closer to leaves\citep{Nelson2004}. Each MeSH node is represented by a tree number, which indicates the postion of the node in MeSH tree. MeSH headings are term names or identifiers. Each MEDLINE document is manually annotated with a set of (usually 10-15) MeSH headings, including around three to five major headings, representing main topics of corresponding document. Besides, MeSH is also used for indexing the NLM-produced database including cataloging of books and audiovisuals. Computing semantic similarities between two MeSH headings as well as two documents (one document having a set of MeSH headings) has been proved very useful to improve the performance of many biomedical text mining tasks, such as retrieval~\citep{Rada1989,Blott2003}, indexing~\citep{Neveol2006} and clustering~\citep{Zhu2009,gu2013}.\\
+
+\hspace{10pt}MeSHSim is an R package for semantic similarities calculation among MeSH headings and MEDLINE documents. As shown in table 1 Five path-based measures and four Information Content (IC)- based measures are implemented in MeSHSim. It also supports querying the hierarchy information of a MeSH heading and information of a given document including title, abstraction and MeSH headings. The package can be easily integrated into pipelines for other biomedical text analysis tasks. With its specific focus, to the best of our knowledge, MeSHSim is the most comprehensive software package of this kind.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{p{1in}|p{5.5in}}
+{\bf Function} & {\bf Description} \\
+\hline
+\Rfunction{nodeSim} & Return semantic similarity between two MeSH nodes. \\
+\Rfunction{mnodeSim} & Return semantic similarity matrix between two lists of MeSH nodes. \\
+\Rfunction{headingSim} & Return semantic similarity between two MeSH headings. \\
+\Rfunction{mheadingSim} & Return semantic similarity matrix between two lists of MeSH headings. \\
+\Rfunction{headingSetSim} & Return semantic similarity between two sets of MeSH headings. \\
+\Rfunction{docSim} & Return semantic similarity between two MEDLINE documents. \\
+\Rfunction{nodeInfo} & Return hierarchy information of a given MeSH node. \\
+\Rfunction{termInfo} & Return hierarchy information of a given MeSH heading \\
+\Rfunction{docInfo} & Return information of a given MEDLINE document including title, abstract, MeSH headings. \\
+
+\end{tabular}
+\end{center}
+\caption{\bf Summary of functions implemented by \Rpackage{MeSHSim}.}
+\label{table:Summary_of_functions}
+\end{table}
+
+
+
+\section{PATH-BASED SIMILARITY MEASURE}
+The kind of measurement is based on spread activation theory\citep{cohen1987information}, which assume that the hierarchy of heading is organized along the lines of semantic similarity. As all the headings of the ontology are organized in a hierarchy, where more general headings are near the root of the hierarchy, and more specific ones near at the leaves, it is convenient to measure similarity as a function of the length of the path linking the headings and on the position of the headings in the hierarchy. Most of the measures that are based on the hierarchy structure of ontology are actually based on: 1) path length (i.e., shortest path length/distance between the two heading nodes) and 2) depth of heading nodes in the ontology.\\
+
+\subsection{\Rfunarg{SP}: \emph{Short Path}\citep{Bulskov2002}}
+The measurement is motivated by the observation that the headingual distance between two nodes is often proportional to the number of edges separating the two nodes in the hierarchy. This measure is designed to find the gap between the local path length and the maximum path length, and use it as the semantic score.
+\begin{equation}
+Sim_{SP}=\frac{MAX-L}{MAX}
+\end{equation}
+where $MAX$ is the maximum path length between two headings in the hierarchy, $L$ is the shortest path between two headings. A measure like this could be integrated into information retrieval system which is based on indexing documents and queries into terms from a semantic hierarchy, or implemented to help rank documents for search engine\citep{hliaoutakis2005semantic}.
+
+\subsection{\Rfunarg{WL}: \emph{Weighted Links}\citep{Richardson1994}}
+It extended the Shortest Path measure by introducing the weighted edges in counting the path length instead of the uniform edges, the distance between two headings is translated into sum of the weights of the traversed links instead of counting them.
+\begin{equation}
+Sim_{WL}=\frac{WMAX-WL}{WMAX}
+\end{equation}
+where $WMAX = max_{i,j}WL_{ij}$ is the maximum weighted path length between two headings in the hierarchy, and 
+\begin{equation}
+WL_{ij}=\sum_{k\in{path_{ij}}}\frac{1}{H_{k}}
+\end{equation}
+where $H_{k}$ is the depth of node $k$ in the hierarchy
+
+\subsection{\Rfunarg{WP}: \emph{Headingualr Similarity}\citep{WP1994}}
+This measure is designed to find the nearest common ancestor of the two headings. The path length from this ancestor heading to the root of the ontology is scaled by the sum of path length of the two headings.
+\begin{equation}
+	Sim_{WP} = \frac{2H_{c}}{H_{1} + H_{2}}
+\end{equation}
+where $H_{1}$ and $H_{2}$ are the depths of two headings, respectively, $H_{c}$ is the depth of the nearest common ancestor of the two headings.
+
+
+\subsection{\Rfunarg{LC}: \emph{Leacock and Chodorow}\citep{LC1994}}
+This measure is based on finding the shortest path between two headings and scaling that value by twice the maximum depth of the hierarchy, and then taking the logarithm of the resulting score.
+\begin{equation}
+	Sim_{LC} = 1 - \frac{log(1+L)}{log(1+2D)}
+\end{equation}
+where $L$ is the shortest path between two headings, and $D$ is the maximum depth of the heading in the ontology.
+
+\subsection{\Rfunarg{Li}: \emph{Li et al.}\citep{Li2003}}
+The measure, which is intuitively and empirically derived, combines the shortest path and the depth of the closest common ancestor in a non-linear function.
+\begin{equation}
+	Sim_{Li} = e^{-aL}\frac{e^{\beta H}-e^{-\beta H}}{e^{\beta H}+e^{-\beta H}}
+\end{equation}
+where $\alpha \geq 0$ and $\beta \geq 0$ are parameters scaling the contribution of shortest path length and depth respectively. According to \citep{li2003approach}, we set $\alpha$ and $\beta$ to 0.2 and 0.6 respectively. The value is 1(for similar headings) and 0, $L$ is the shortest path between two headings, $H$ is the minimum depth of the least common nearest common ancestor. This measure is motived by the fact that information sources are infinite to some exend while humans compare word similarity with a finite interval between completely similar and nothing similar. Intuitively the transformation between an infinite interval to a finite one is non-linear\citep{hliaoutakis2005semantic}.
+
+
+\section{INFORMATION-BASED SIMILARITY MEASURE}
+The notion of information content of the heading practically has to do with the frequency of the heading in a given document collection. Given a corpus $C$, $p(c)$ is the probability of encountering an instance of heading $c$. The heading probability is defined as $p(c)=freq(c)/N$, where $N$ is the total number of headings that appear in $C$, $freq(c)$ corresponds to the frequency of heading $c$. Additionally, the frequency counts of every heading includes the frequency counts of subsumed headings in an IS-A hierarchy. It implies that if $c_1$ is a sub-heading of $c_2$ in the MeSH tree, then $p(c_1)\leq p(c_2)$ , which intuitively means that the more general the concept $c$ is, the higher its associated probability. Then, the information content of $c$ can be computed: $I(c)=-log p(c)$, which means that as probability increases, informationtiveness decreases, os the more abstract a MeSH heading, the lower its information content.
+
+
+\subsection{\Rfunarg{Lord}: \emph{Lord et al.}\citep{Lord2003}}
+The first way to compare two headings is by using a measure that simply uses the probability of nearest common ancestor.
+\begin{equation}
+	Sim_{lord}=1-p(c)
+\end{equation}
+where $c$ is the nearest common ancestor of heading $c_1$ and $c_2$. The measure implies that similarity judgements might be sensitive to frequency of a heading rather than its information content.
+
+\subsection{\Rfunarg{Resnik}: \emph{Resnik}\citep{Resnik1999}}
+This measure signifies that the more information two headings share in common, the more similar they are, and the information shared by two headings is indicated by the information content of the heading that subsume them in the ontology.
+\begin{equation}
+	Sim_{Resnik}=I(c)
+\end{equation}
+where $c$ is the nearest common ancestor of heading $c_1$ and $c_2$. As $p(c)$ varies between 0 and 1, this measure varies infinitiy(for very similar terms) to 0. In order to keep consistency of the range of simialrity, we normalized the Resnik measure by divided it by the max information content in the hierarchy.
+
+\subsection{\Rfunarg{Lin}: \emph{Lin}\citep{Lin1993}}
+This measure is the same as WP, except that the information content is used, instead of node depth.
+\begin{equation}
+	Sim_{Resnik}=\frac{2*I(c)}{I(c_1)+I(c_2)}
+\end{equation}
+where $c$ is the nearest common ancestor of heading $c_1$ and $c_2$. As the Resnik measure relies only on information content of the nearest common ancestor, there are only as many discrete socre as there are ontology terms. Lin's measure utilize information content of both compared terms and their nearest common ancestor, which means the amount of discrete scores is quadratic in the number of terms in the ontology. Thus, this measure can obtain a bettern ranking of similarity that Resnik' measure.
+
+\subsection{\Rfunarg{JC}: \emph{Jiang and Conrath}\citep{JC1998}}
+The measure defined a distance function as follows,
+\begin{equation}
+	Dist_{JC}=I(c_1)+I(c_2)-2*I(c)
+\end{equation}
+The authors use an exponential function to transform the distance into a similarity with constant $\lambda$, which adjusts the steepness of the exponential curve. A large $\lambda$ will yield a high similarity value even for weakly related headings.
+\begin{equation}
+	Sim_{JC}=e^{-\frac{Dist_{JC}(c_1+c_2)}{\lambda}}
+\end{equation}
+where $c$ is the nearest common ancestor of heading $c_1$ and $c_2$.
+
+
+\section{SEMANTIC SIMILARITY BETWEEN MESH HEADINGS}
+Althourgh the structure of MeSH is a hierarchical tree, a MeSH heading can appear in different subtrees at the same time. There are 15 tree hierarchies(subtree) in the MeSH ontology. As not all of the MeSH headings are represented by only one tree node, two frameworks have been proposed to compute the semantic similarity between two MeSH headings: node-based framework and heading-based framework. On the one hand, node-based framework implies that we project the two MeSH main headings onto the tree structure and calculate the similarity between the two projected node sets\citep{Zhu2009}. On the other hand, heading-based framework tries to build a relation structure among main headings through the MeSH tree structure and then only consider the nearest path between them. Please note that the two frameworks differ from each other in computing the information content.
+
+\subsection{Node-based Framework}
+Node-based framework uses the Average Maximum Match method\citep{wang2007new}. Considering a general case in which each MeSH main heading has one or multiple tree nodes, for each MeSH nodes $v$ in main heading $M$, the maximum similarity between $v$ and any MeSH nodes in $M'$ is used to represent its contribution to the similarity between $M$ and $M'$:
+\begin{equation}
+Sim(M,M')=\frac{\sum_{v\in M}max_{v' \in M'}Sim(v,v')+\sum_{v'\in M'}max_{v\in M'}Sim(v,v')}{|M|+|M'|}
+\end{equation}
+Computing IC: As each MeSH main heading corresponds to one or several MeSH tree nodes, accordingly the frequency of these related tree nodes and their ancestor nodes should be updated simultaneously. Then, the total number N is defined as the frequency of global root node. Finally, the information content of each node is computed as previous mentioned in section 2.
+
+\subsection{Heading-based Framework}
+Heading-based framework treat each MeSH main heading as a basic computational element, however many headings could be mapped to not a single position on the tree structure; so when projected to the tree structure, there might be several position-position relationship for a MeSH heading pair and we can calculate several candidate similarity scores. Typically, the maximum similarity score is chosen as the semantic score between the two headings.\\
+
+Computing IC: As each MeSH main heading could be mapped to the tree structure, the frequency of it and it's ancestor main headings (through it's projection onto the tree structure) should accumulate simultaneously. And the total number N is denoted as the sum of the frequencies of all the main headings. Therefore, the information content of each main heading is computed as previous mentioned in section 2.
+
+\section{SIMILARITY BETWEEN TWO DOCUMENTS (MESH SETS)}
+As each MEDLINE article is marked by a set of MeSH headings, the similarity between two documents can be measured by the similarity between two MeSH sets, which relate to the two documents. Sematic similarity between two MeSH sets are calculated by the idea of Average Maximum Match(AMM)\citep{Zhu2009}. 
+\begin{equation}
+Sim(S,S')=\frac{\sum_{M\in S}max_{M'\in S'}Sim(M,M')+\sum_{M'\in S'}max_{M\in S}Sim(M,M')}{|S|+|S'|}
+\end{equation}
+where $S$ and $S'$ are the two MeSH sets corresponding to two MEDLINE documents, and $M$ and $M'$ are MeSH heading that belong to related MeSH sets.
+
+
+\section{Usage of MeSHSim}
+
+\subsection{Similarity Measurements Statements}
+\Rfunarg{SP}: Shortest Path method\\
+\Rfunarg{WL}: Weighted Link method\\
+\Rfunarg{WP}: Wu and Palmer's method\\
+\Rfunarg{LC}: Leacock and Chodorow's method\\
+\Rfunarg{Li}: Li's method\\
+\Rfunarg{Lord}: Lord's method\\
+\Rfunarg{Resnik}: Resnik's method\\
+\Rfunarg{Lin}: Lin's method\\
+\Rfunarg{JC}: Jiang and Conrath's method\\
+
+Detailed information are listed previous sections.
+
+\subsection{MeSH Nodes Similarities} 
+In this section we illustrate how to caluculate semantic similarity between MeSH nodes using MeSHSim package through the use of the \Rfunction{nodeSim}, \Rfunction{mnodeSim}. Function \Rfunction{nodeSim} is to calculate similarity between two MeSH nodes, whose value is between 0 and 1, function \Rfunction{mnodeSim} is to calculate similarity matrix between two lists of MeSH nodes.
+\subsubsection{\Rfunction{nodeSim}}
+\textbf{Usage of nodeSim}\\
+nodeSim(node1, node2, method=``SP", frame=``node", env=NULL)\\
+\emph{Function}: to calculate similarity between two MeSH nodes.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    node1,node2: two MeSH nodes\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+\hspace*{20pt}    frame: framework for calculating the similarity. as MeSH node similarity can be only calculated by node-based, so the default value is set to ``node".   \\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return similarity between two MeSH nodes\\
+\textbf{Examples of nodeSim}
+<<options,echo=FALSE>>=
+options(width=72)
+@ 
+
+Let us examine the similarity of the MeSH nodes for nodes ``B03.440.400.425.340'' and ``B03.440.400.425.117.800'', which stand for MeSH heading ``Francisella'' and ``Taylorella'', respectively.
+<<main1>>=
+library(RCurl)
+library(XML)
+library(MeSHSim)
+nodeSim("B03.440.400.425.340", "B03.440.400.425.117.800")
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument one to of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+<<main2>>=
+nodeSim("B03.440.400.425.340", "B03.440.400.425.117.800", method="LC")
+nodeSim("B03.440.400.425.340", "B03.440.400.425.117.800", method="Lin")
+@
+
+
+\subsubsection{\Rfunction{mnodeSim}}
+\textbf{Usage of mnodeSim}\\
+mnodeSim(nodeList1, nodeList2, method=``SP", frame=``node", env=NULL)\\
+\emph{Function}: to calculate similarity matrix between two lists of MeSH nodes.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    nodeList1,nodeList2: two lists of MeSH nodes\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+\hspace*{20pt}    frame: framework for calculating the similarity. as MeSH node similarity can be only calculated by node-based, so the default value is set to ``node"    \\
+\hspace*{20pt}   env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+ \hspace*{20pt}   return similarity matrix between two lists of MeSH nodes\\
+\textbf{Examples of mnodeSim}\\
+Let us examine the similarity matrix of two MeSH node lists, which are [``B03.440.450.425.800.200", ``B03.440.450.900.859.225"] and [``B03.440.400.425.340", ``B03.440.400.425.117.800", ``B03.440.400.425.127.100"], respectively.
+<<main3>>=
+nodeList1<-c("B03.440.450.425.800.200", "B03.440.450.900.859.225")
+nodeList2<-c("B03.440.400.425.340", "B03.440.400.425.117.800", "B03.440.400.425.127.100")
+mnodeSim(nodeList1,nodeList2)
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument to one of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+
+<<main4>>=
+nodeList1<-c("B03.440.450.425.800.200", "B03.440.450.900.859.225")
+nodeList2<-c("B03.440.400.425.340", "B03.440.400.425.117.800", "B03.440.400.425.127.100")
+mnodeSim(nodeList1,nodeList2,method="Lord")
+mnodeSim(nodeList1,nodeList2,method="Resnik")
+@
+
+
+
+
+
+\subsection{MeSH Headings Similarities} 
+In this section we illustrate how to caluculate semantic similarity between MeSH headingsusing MeSHSim package through the use of the \Rfunction{headingSim}, \Rfunction{mheadingSim} and \Rfunction{headingSetSim}. Function \Rfunction{headingSim} is to calculate similarity between two MeSH headings, whose value is between 0 and 1, function \Rfunction{mheadingSim} is to calculate similarity matrix between two lists of MeSH headings,  and function \Rfunction{headingSetSim} is to calculate similarity between two sets of MeSH headings.
+
+\subsubsection{\Rfunction{headingSim}}  
+\textbf{Usage of headingSim}\\
+headingSim(heading1, heading2, method=``SP", frame=``node", env=NULL)\\
+\emph{Function}: to calculate similarity between two MeSH headings.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    heading1,heading2: two MeSH headings\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+ \hspace*{20pt}   frame: framework for calculating the similarity. One of ``node'' and ``heading''\\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return similarity between two MeSH headings\\
+
+\textbf{Examples of headingSim}\\
+Let us examine the similarity of the MeSH headings for headings ``Lumbosacral Region'' and ``Body Regions''.
+<<main5>>=
+headingSim("Lumbosacral Region", "Body Regions")
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument to one of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+<<main6>>=
+headingSim("Lumbosacral Region", "Body Regions", method="LC")
+headingSim("Lumbosacral Region", "Body Regions", method="Lin")
+@
+
+The type of framework is set by specifying the \Rfunarg{frame} argument to of \texttt{"node"} and \texttt{"heading"}, which stand for ``node-based'' and ``heading-based'' similarity framework, repectively, described in prevous sections. The default setting is ``node'' using node-based framework.
+<<main7>>=
+headingSim("Lumbosacral Region", "Body Regions", method="JC", frame="node")
+headingSim("Lumbosacral Region", "Body Regions", method="JC", frame="heading")
+@
+
+
+\subsubsection{\Rfunction{mheadingSim}}
+\textbf{Usage of mheadingSim}\\
+mheadingSim(headingList1, headingList2, method=``SP", frame=``node", env=NULL)\\
+\emph{Function}: to calculate similarity matrix between two lists of MeSH headings.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    headingList1,headingList2: two lists of MeSH headings\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+\hspace*{20pt}    frame: framework for calculating the similarity. One of ``node'' and ``heading''\\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return similarity matrix between two lists of MeSH headings\\
+
+\textbf{Examples of mheadingSim}\\
+Let us examine the similarity matrix of two MeSH heading lists, which are [``Body Regions", ``Abdomen", ``Abdominal Cavity"] and [``Lumbosacral Region", ``Body Regions"], respectively.
+<<main8>>=
+headingList1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingList2<-c("Lumbosacral Region", "Body Regions")
+mheadingSim(headingList1, headingList2)
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument to one of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+
+<<main9>>=
+headingList1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingList2<-c("Lumbosacral Region", "Body Regions")
+mheadingSim(headingList1, headingList2, method="Lord")
+mheadingSim(headingList1, headingList2, method="Resnik")
+@
+
+The type of framework is set by specifying the \Rfunarg{frame} argument to of \texttt{"node"} and \texttt{"heading"}, which stand for ``node-based'' and ``heading-based'' similarity framework, repectively, described in prevous sections. The default setting is ``node'' using node-based framework.
+<<main10>>=
+headingList1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingList2<-c("Lumbosacral Region", "Body Regions")
+headingSim(headingList1, headingList2, method="JC", frame="node")
+headingSim(headingList1, headingList2, method="JC", frame="heading")
+@
+
+\subsubsection{\Rfunction{headingSetSim}}
+\textbf{Usage of headingSetSim}\\
+headingSetSim(headingSet1, headingSet2, method``SP", frame=``node", env=NULL)\\
+\emph{Function}: to calculate similarity matrix between two sets of MeSH headings.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    headingSet1,headingSet2: two sets of MeSH headings\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+\hspace*{20pt}    frame: framework for calculating the similarity. One of ``node'' and ``heading''\\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return similarity matrix between two sets of MeSH headings\\
+
+\textbf{Examples of headingSetSim}\\
+Let us examine the similarity of two MeSH heading sets using the method introduced in section 5, which are [``Body Regions", ``Abdomen", ``Abdominal Cavity"] and [``Lumbosacral Region", ``Body Regions"], respectively.
+<<main11>>=
+headingSet1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingSet2<-c("Lumbosacral Region", "Body Regions")
+headingSetSim(headingSet1, headingSet2)
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument to one of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+
+<<main12>>=
+headingSet1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingSet2<-c("Lumbosacral Region", "Body Regions")
+mheadingSim(headingSet1, headingSet2, method="Lord")
+mheadingSim(headingSet1, headingSet2, method="Resnik")
+@
+
+The type of framework is set by specifying the \Rfunarg{frame} argument to of \texttt{"node"} and \texttt{"heading"}, which stand for ``node-based'' and ``heading-based'' similarity framework, repectively, described in prevous sections. The default setting is ``node'' using node-based framework.
+<<main13>>=
+headingSet1<-c("Body Regions", "Abdomen", "Abdominal Cavity")
+headingSet2<-c("Lumbosacral Region", "Body Regions")
+headingSim(headingSet1, headingSet2, method="JC", frame="node")
+headingSim(headingSet1, headingSet2, method="JC", frame="heading")
+@
+
+
+
+\subsection{MEDLINE Documents Similarities}
+In this section we illustrate how to caluculate semantic similarity between MEDLINE articles through the use of the \Rfunction{docSim}. Function \Rfunction{docSim} is to calculate similarity between two MEDLINE articles, whose value is between 0 and 1.
+
+\subsection{\Rfunction{docSim}}  
+\textbf{Usage of docSim}\\
+docSim(pmid1, pmid2, method=``SP", frame=``node", major=FALSE, env=NULL)\\
+\emph{Function}: to calculate similarity between two MEDLINE documents.\\
+\emph{Parameters}:\\
+\hspace*{20pt}    pmid1, pmid2: PMIDs(PubMed IDs) of two articles whose similarity is needed to be calculated\\
+\hspace*{20pt}    method: similarity measurement, options are presented at Section Similarity Measurements Statements\\
+\hspace*{20pt}    frame: framework for calculating the similarity. One of ``node'' and ``heading''\\
+\hspace*{20pt}    major: use only major MeSH headings to calculate documents similarity\\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return similarity between two MEDLINE documents\\
+
+\textbf{Examples of docSim}\\
+Let us examine the similarity of two MEDLINE documents, whose PMID(PubMed ID) is ``1111113"'' and ``1111111'' representing document ``Growth hormone: independent release of big and small forms from rat pituitary in vitro'' and document ``Evaporative water loss in box turtles: effects of rostral brainstem and other temperatures.'', respectively.
+<<main14>>=
+docSim("1111113","1111111")
+@
+
+The type of similarity measurement is set by specifying the \Rfunarg{method} argument to one of \texttt{"SP"}, \texttt{"WL"}, \texttt{"WP"}, \texttt{"LC"}, \texttt{"Li"}, \texttt{"Lord"}, \texttt{"Resnik"}, \texttt{"Lin"}, and \texttt{"JC"}. Detailed information are listed in Section Similarity Measurements Statements. The default type is \texttt{"SP"}, which is Shortest Path.
+<<main15>>=
+docSim("1111113","1111111", method="LC")
+docSim("1111113","1111111", method="Lin")
+@
+
+The type of framework is set by specifying the \Rfunarg{frame} argument to of \texttt{"node"} and \texttt{"heading"}, which stand for ``node-based'' and ``heading-based'' similarity framework, repectively, described in prevous sections. The default setting is ``node'' using node-based framework.
+<<main16>>=
+docSim("1111113","1111111", method="JC", frame="node")
+docSim("1111113","1111111", method="JC", frame="heading")
+@
+
+Users are able to choose to use only major MeSH headings to caculate documents similarity by setting \Rfunarg{major} argument to ``TRUE''. The default setting is ``FALSE'', which means use all the MeSH headings to calculate documents similarity.
+<<main17>>=
+docSim("1111113","1111111", method="JC", frame="node", major=TRUE)
+docSim("1111113","1111111", method="JC", frame="node", major=FALSE)
+@
+
+\subsection{MeSH and MEDLINE Information Retrieval}
+In this section, we illustrate how to retrieve MeSH node, MeSH heading and MEDLINE information using MeSHSim package through the use of \Rfunction{nodeInfo}, \Rfunction{termInfo} and \Rfunction{docInfo}. Function \Rfunction{nodeInfo} and \Rfunction{termInfo} are to retrieve hierarchical information of MeSH node and MeSH heading, and function \Rfunction{docInfo} is to retrieve MEDLINE article information including title, abstract and related MeSH headings.
+
+\subsubsection{\Rfunction{docInfo}}
+\textbf{Usage of docInfo}\\
+docInfo(pmid, verbose=FALSE, major=FALSE)  \\
+\emph{Function}: to retrieve information of a given article from PubMed\\
+\emph{Parameters}:\\
+\hspace*{20pt}    pmid: pmid of the desired article.\\
+\hspace*{20pt}    verbose: whether the title and abstract of the article should be print out.\\
+\hspace*{20pt}    major: whether only major MeSH headings should be returned.\\
+\emph{Value}:\\
+\hspace*{20pt}   return information of a given article from PubMed including title, abstract, MeSH headings\\
+
+\textbf{Examples of docInfo}
+<<main20>>=
+library(RCurl)
+library(XML)
+library(MeSHSim)
+docInfo("1111111")
+@
+
+Whether the title and abstract of the article should be print out could be set to \Rfunarg{verbose}. If \Rfunarg{verbose} is set to ``TRUE", \Rfunction{docInfo} will fetch title and abstract of the given document. If \Rfunarg{verbose} is set to ``FALSE", it will only retrieve MeSH headings of the given document. The default setting is ``FALSE''.
+<<main21>>=
+docInfo("1111111", verbose=TRUE)
+docInfo("1111111", verbose=FALSE)
+@
+
+Users are able to choose to fetch major MeSH headings or all the MeSH heading by setting \Rfunarg{major}. The default setting is retrieve all MeSH headings, whose value ``FALSE''
+<<main22>>=
+docInfo("1111111", verbose=FALSE, major=TRUE)
+docInfo("1111111", verbose=FALSE, major=FALSE)
+@
+
+\subsubsection{\Rfunction{nodeInfo}}
+\textbf{Usage of nodeInfo}\\
+nodeInfo(node1, env=NULL)\\
+\emph{Function}: to retrieve hierarchy information of a given MeSH node\\
+\emph{Parameters}:\\
+\hspace*{20pt}    node: a MeSH node name\\
+\hspace*{20pt}   env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return hierarchy information of a given MeSH node\\
+
+\textbf{Examples of nodeInfo}
+<<main18>>=
+nodeInfo("B03.440.400.425.127.100")
+@
+
+
+\subsubsection{\Rfunction{termInfo}}
+\textbf{Usage of termInfo}\\
+termInfo(heading1, env=NULL)\\
+\emph{Function}: to retrieve hierarchy information of a given MeSH heading\\
+\emph{Parameters}:\\
+\hspace*{20pt}    heading: a MeSH heading name\\
+\hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
+\emph{Value}:\\
+\hspace*{20pt}    return hierarchy information of a given MeSH heading\\
+
+\textbf{Examples of \Rfunction{headingInfo}}
+<<main19>>=
+termInfo("Rhode Island")
+@
+
+\bibliographystyle{apalike}
+\bibliography{references}
+\end{document}
+

@@ -5,10 +5,11 @@
     This function returns a tree contains the given term.
 }
 \usage{
-    termInfo(term, env=NULL)
+    termInfo(term, brief,env=NULL)
 }
 \arguments{
     \item{term}{  a term name.  }
+    \item{brief}{whether to retrive breif tree information of MeSH term}
     \item{env}{  the dataset to use.  }
 }
 \value{

@@ -254,14 +254,18 @@ get_node_name<-function(a, len){
             assign(q, envir=tmpe, value=u);
         }
     }
-    np <- get(paste("_build_node_tree_",a), tmpe)$child
+
+    np <- list();
     np$term = get(paste("_build_node_tree_",a), tmpe)$term
+    np <- append(np, get(paste("_build_node_tree_",a), tmpe)$child)
+    
     oname <- a
     for(i in (length(tmp)-1):1){
         noname <- paste(tmp[1:i], collapse=".")
         name <- paste("_build_node_tree_", noname)
-        np2 <- get(name, tmpe)$child
-        np2$term <- get(name, tmpe)$term
+        np2 <- list();
+        np2$term = get(name, tmpe)$term;
+        np2 <- append(np2, get(name, tmpe)$child);
         np2[[oname]] <- np
         np <- np2
         oname <-noname

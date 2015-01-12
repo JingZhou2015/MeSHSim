@@ -402,7 +402,7 @@ docInfo(pmid, verbose=FALSE, major=FALSE)  \\
 \hspace*{20pt}   return information of a given article from PubMed including title, abstract, MeSH headings\\
 
 \textbf{Examples of docInfo}
-<<main20>>=
+<<main18>>=
 library(RCurl)
 library(XML)
 library(MeSHSim)
@@ -410,13 +410,13 @@ docInfo("1111111")
 @
 
 Whether the title and abstract of the article should be print out could be set to \Rfunarg{verbose}. If \Rfunarg{verbose} is set to ``TRUE", \Rfunction{docInfo} will fetch title and abstract of the given document. If \Rfunarg{verbose} is set to ``FALSE", it will only retrieve MeSH headings of the given document. The default setting is ``FALSE''.
-<<main21>>=
+<<main19>>=
 docInfo("1111111", verbose=TRUE)
 docInfo("1111111", verbose=FALSE)
 @
 
 Users are able to choose to fetch major MeSH headings or all the MeSH heading by setting \Rfunarg{major}. The default setting is retrieve all MeSH headings, whose value ``FALSE''
-<<main22>>=
+<<main20>>=
 docInfo("1111111", verbose=FALSE, major=TRUE)
 docInfo("1111111", verbose=FALSE, major=FALSE)
 @
@@ -427,13 +427,20 @@ nodeInfo(node1, env=NULL)\\
 \emph{Function}: to retrieve hierarchy information of a given MeSH node\\
 \emph{Parameters}:\\
 \hspace*{20pt}    node: a MeSH node name\\
+\hspace*{20pt}	brief: whether to retrive breif tree information of MeSH node\\
 \hspace*{20pt}   env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
 \emph{Value}:\\
 \hspace*{20pt}    return hierarchy information of a given MeSH node\\
 
 \textbf{Examples of nodeInfo}
-<<main18>>=
+
+Users are able to choose to fetch brief information of a given MeSH node by setting \Rfunarg{brief}. The default setting is retrieve all MeSH headings, whose value ``TRUE''
+<<main21>>=
 nodeInfo("B03.440.400.425.127.100")
+@
+
+<<main22>>=
+nodeInfo("B03.440.400",brief=FALSE)
 @
 
 
@@ -443,13 +450,19 @@ termInfo(heading1, env=NULL)\\
 \emph{Function}: to retrieve hierarchy information of a given MeSH heading\\
 \emph{Parameters}:\\
 \hspace*{20pt}    heading: a MeSH heading name\\
+\hspace*{20pt}    brief: whether to retrive breif tree information of MeSH term\\
 \hspace*{20pt}    env: the dataset to use. As the dataset has been pre-calculated in MeSHSim package, there is no need to set ``env" defaultly.\\
 \emph{Value}:\\
 \hspace*{20pt}    return hierarchy information of a given MeSH heading\\
 
-\textbf{Examples of \Rfunction{headingInfo}}
-<<main19>>=
+\textbf{Examples of \Rfunction{termInfo}}
+
+Users are able to choose to fetch brief information of a given MeSH term by setting \Rfunarg{brief}. The default setting is retrieve all MeSH headings, whose value ``TRUE''
+<<main23>>=
 termInfo("Rhode Island")
+@
+<<main24>>=
+termInfo("Rhode Island",brief=FALSE)
 @
 
 \bibliographystyle{apalike}

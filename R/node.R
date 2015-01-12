@@ -15,7 +15,8 @@
         return(sapply(b, run2))
     }
     res<-as.vector(sapply(a, run))
-    dim(res)<-c(length(a), length(b))
+    dim(res)<-c(length(b), length(a))
+	res<-t(res)
     return(res)
 }
 nodeSim<-function(node1, node2, method="SP", frame="node", env=NULL){
@@ -30,7 +31,8 @@ mnodeSim<-function(nodeList1, nodeList2, method="SP", frame="node", env=NULL){
         return(sapply(nodeList2, run2))
     }
     res<-as.vector(sapply(nodeList1, run))
-    dim(res)<-c(length(nodeList1), length(nodeList2))
+    dim(res)<-c(length(nodeList2), length(nodeList1))
+	res<-t(res)
     return(res)
 }
 headingSim<-function(heading1, heading2, method="SP", frame="node", env=NULL){
@@ -51,21 +53,50 @@ mheadingSim<-function(headingList1, headingList2, method="SP", frame="node", env
         return(sapply(headingList2, run2))
     }
     res<-as.vector(sapply(headingList1, run))
-    dim(res)<-c(length(headingList1), length(headingList2))
+    dim(res)<-c(length(headingList2), length(headingList1))
+	res<-t(res)
     return(res)
 }
-nodeInfo<-function(node, env=NULL){
+nodeInfo<-function(node, brief=TRUE, env=NULL){
     env=check_and_set_data(env);
-    `_build_node_tree`(node, env);
-}
-termInfo<-function(term, env=NULL){
-    env=check_and_set_data(env);
-    run<-function(na){
-        `_build_node_tree`(paste(na[2:length(na)],collapse="."), env);
+    if (brief) {
+        a<-get_tree_path(node);
+        l <- list();
+        for(i in 2:length(a)){
+            tmp<-get(get_node_var_name_v(a[1:i]), envir=env);
+            l[[paste(a[2:i], collapse=".")]] <- tmp$descriptor;
+        }
+        l;
     }
-    an<-get(get_term_var_name(term), envir=env)$nodes
-    lapply(an, run);
+    else {
+        `_build_node_tree`(node, env);
+    }
 }
+termInfo<-function(term, brief=TRUE, env=NULL){
+    env=check_and_set_data(env);
+    if (brief) {
+        a<-get_term_var_name(term);
+        a<-get(a, envir=env);
+        a<-a$nodes;
+        run1<-function(a){
+            l <- list();
+            for(i in 2:length(a)){
+                tmp<-get(get_node_var_name_v(a[1:i]), envir=env);
+                l[[paste(a[2:i], collapse=".")]] <- tmp$descriptor;
+            }
+            l;
+        }
+        lapply(a, run1);
+    }
+    else {
+        run2<-function(na){
+            `_build_node_tree`(paste(na[2:length(na)],collapse="."), env);
+        }
+        an<-get(get_term_var_name(term), envir=env)$nodes
+        lapply(an, run2);
+    }
+}
+
 `_docSim`<-function(a, b, method="SP", frame="node", env=NULL){
     res<-mheadingSim(a, b, method, frame, env)
     return(max_method2(res))
@@ -76,4 +107,3 @@ headingSetSim<-function(headingSet1, headingSet2, method="SP", frame="node", env
     res<-mheadingSim(a, b, method, frame, env)
     return(max_method2(res))
 }
-

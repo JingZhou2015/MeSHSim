@@ -3,10 +3,11 @@ Type: Package
 Author: Jing Zhou, Yuxuan Shui
 Maintainer: Jing ZHou <12210240050@fudan.edu.cn>
 Title: MeSH(Medical Subject Headings) Semantic Similarity Measures
-Version: 0.99.1
-Date: 2014-12-14
+Version: 0.99.7
+Date: 2015-01-11
 Imports: XML, RCurl
 Depends: R(>= 3.0.0)
-Description: Provide for measuring semantic similarity over MeSH headings and MEDLINE documents
+Description: Provide for measuring semantic similarity over MeSH
+        headings and MEDLINE documents
 License: GPL-2
 biocViews: Clustering, Software

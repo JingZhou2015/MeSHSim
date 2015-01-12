@@ -1,6 +1,15 @@
 MeSHSim package
+2015-01-12: add document for brief model of nodeInfo
 
-2015-01-02: Update MeSH and its information based on 2015 MEDLINE database
+2015-01-12: add brief model for nodeInfo
+
+2015-01-12: adjust parameter and update MeSH information
+
+2015-01-12: fix bugs
+
+2015-01-11: Enrich function termInfo to just retrive brief information
+
+2015-01-08: Update to 2015 MeSH information for 0.99.2 release
 
 2014-12-14: Update vignettes for MeSHSim 0.99.1 release
 

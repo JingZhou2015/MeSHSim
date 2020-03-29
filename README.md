@@ -46,7 +46,7 @@ If everything went well you will be able to install the MeSHSim package.
 I R console, type:
 ```R
 library(devtools)
-install_github("radcheb/MeSHSim")
+install_github("JingZhou2015/MeSHSim")
 ```
 
 #### From Bioconductor

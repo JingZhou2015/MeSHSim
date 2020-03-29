@@ -17,7 +17,7 @@ Package bitops is available at CRAN. To install it call:
 #### XML
 Package XML is available at CRAN. To install it call:
 <code>
-	install.package("XML")
+	install.packages("XML")
 </code>
 
 ####RCurl

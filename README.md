@@ -41,6 +41,14 @@ You will now be able to install R package RCurl. In R console:
 
 ### MeSHSim Installation
 If everything went well you will be able to install the MeSHSim package.
+
+### From github (latest version, temporary)
+I R console, type:
+```R
+library(devtools)
+install_github("radcheb/MeSHSim")
+```
+
 #### From Bioconductor
 In R console, type:
 <code>

@@ -183,13 +183,15 @@ read_information_content<-function(path, env){
     lapply(node_tmp, record_node_ic)
     return(NULL)
 }
-`_update_db`<-function(mtree="mtrees2011.bin", terminfo="termInfo_2011.txt", nodeinfo="nodeInfo_2011.txt"){
+`_update_db`<-function(mtree="mtrees2019.bin", terminfo=NULL, nodeinfo=NULL){
     y<-new.env()
     read_and_parse_mtrees(mtree, y)
-    read_information_content(path=c(terminfo, nodeinfo), env=y)
+    if(!is.null(terminfo) & !is.null(nodeinfo)){
+        read_information_content(path=c(terminfo, nodeinfo), env=y)
+    }
     return(y)
 }
-update_db<-function(fn="mesh.rda", mtree="mtrees2011.bin", terminfo="termInfo_2011.txt", nodeinfo="nodeInfo_2011.txt"){
+update_db<-function(fn="mesh.rda", mtree="mtrees2019.bin", terminfo=NULL, nodeinfo=NULL){
     MeshSimData<-`_update_db`(mtree, terminfo, nodeinfo)
     save(MeshSimData, file=fn, compress="xz")
 }

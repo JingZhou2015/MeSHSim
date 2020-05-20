@@ -1,4 +1,5 @@
-eutils_base<-"http://www.ncbi.nlm.nih.gov/entrez/eutils/"
+# ncbi.nlm.nih.gov passed to https, required to request their api
+eutils_base<-"https://www.ncbi.nlm.nih.gov/entrez/eutils/"
 eutils_fetch<-function(a){
     url<-paste(eutils_base, "esearch.fcgi?db=pubmed&usehistory=y&term=", a, sep="")
     doc<-getURL(url)

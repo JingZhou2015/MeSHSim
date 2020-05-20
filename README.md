@@ -17,7 +17,7 @@ Package bitops is available at CRAN. To install it call:
 #### XML
 Package XML is available at CRAN. To install it call:
 <code>
-	install.package("XML")
+	install.packages("XML")
 </code>
 
 ####RCurl
@@ -41,6 +41,14 @@ You will now be able to install R package RCurl. In R console:
 
 ### MeSHSim Installation
 If everything went well you will be able to install the MeSHSim package.
+
+### From github (latest version, temporary)
+I R console, type:
+```R
+library(devtools)
+install_github("JingZhou2015/MeSHSim")
+```
+
 #### From Bioconductor
 In R console, type:
 <code>
@@ -69,3 +77,17 @@ Load MeSHSim pacakge in R console
 <code>
 	library('MeSHSim')
 </code>
+
+## Update DB instructions
+
+* Download latest MeSH file
+```bash
+wget ftp://nlmpubs.nlm.nih.gov/online/mesh/2019/meshtrees/mtrees2019.bin
+```
+
+* Update MeSH DB
+```R
+source("./R/mesh_tree_utils.R")
+
+update_db("./data/mesh.rda", "./mtrees2019.bin")
+``` 
